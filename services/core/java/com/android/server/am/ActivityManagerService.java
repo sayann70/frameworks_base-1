@@ -429,6 +429,8 @@ import com.android.server.wm.WindowManagerInternal;
 import com.android.server.wm.WindowManagerService;
 import com.android.server.wm.WindowProcessController;
 
+import com.android.internal.util.banana.cutout.CutoutFullscreenController;
+
 import dalvik.annotation.optimization.NeverCompile;
 import dalvik.system.VMRuntime;
 
@@ -1572,6 +1574,8 @@ public class ActivityManagerService extends IActivityManager.Stub
     final SwipeToScreenshotObserver mSwipeToScreenshotObserver;
     private boolean mIsSwipeToScreenshotEnabled;
 
+    private CutoutFullscreenController mCutoutFullscreenController;
+
     /**
      * Used to notify activity lifecycle events.
      */
@@ -2505,6 +2509,9 @@ public class ActivityManagerService extends IActivityManager.Stub
         mTraceErrorLogger = new TraceErrorLogger();
         mComponentAliasResolver = new ComponentAliasResolver(this);
         mSwipeToScreenshotObserver = new SwipeToScreenshotObserver(mHandler, mContext);
+
+        // Force full screen for devices with cutout
+        mCutoutFullscreenController = new CutoutFullscreenController(mContext);
     }
 
     public void setSystemServiceManager(SystemServiceManager mgr) {
@@ -18616,6 +18623,13 @@ public class ActivityManagerService extends IActivityManager.Stub
     public boolean isSwipeToScreenshotGestureActive() {
         synchronized (this) {
             return mIsSwipeToScreenshotEnabled && SystemProperties.getBoolean("sys.android.screenshot", false);
+        }
+    }
+
+    @Override
+    public boolean shouldForceCutoutFullscreen(String packageName) {
+        synchronized (this) {
+            return mCutoutFullscreenController.shouldForceCutoutFullscreen(packageName);
         }
     }
 }
